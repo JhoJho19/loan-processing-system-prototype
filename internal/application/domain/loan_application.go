@@ -9,7 +9,7 @@ type LoanApplication struct {
 	CustomerID      string
 	RequestedAmount int
 	TermMonths      int
-	Status          string
+	Status          ApplicationStatus
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
 }
