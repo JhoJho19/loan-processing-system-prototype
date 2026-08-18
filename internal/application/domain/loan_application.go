@@ -1,7 +1,12 @@
 package domain
 
 import (
+	"errors"
 	"time"
+)
+
+var (
+	ErrInvalidApplicationID = errors.New("invalid application ID")
 )
 
 type LoanApplication struct {
