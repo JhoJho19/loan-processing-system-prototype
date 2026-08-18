@@ -6,7 +6,7 @@ type CreateApplicationInput struct {
 	FirstName       string
 	LastName        string
 	BirthDate       time.Time
-	MonthlyIncome   float64
+	MonthlyIncome   int
 	EmploymentType  string
 	Email           string
 	Phone           string

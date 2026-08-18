@@ -2,14 +2,23 @@ package service
 
 import (
 	"loan-processing-system/internal/application/domain"
+	"loan-processing-system/internal/application/repository"
 	"time"
 
 	"github.com/google/uuid"
 )
 
-type ApplicationService struct{}
+type ApplicationService struct {
+	repository repository.ApplicationRepository
+}
 
-func (c ApplicationService) CreateApplication(customerApplicationInput CreateApplicationInput) (domain.LoanApplication, error) {
+func NewApplicationService(repo repository.ApplicationRepository) ApplicationService {
+	return ApplicationService{
+		repository: repo,
+	}
+}
+
+func (s ApplicationService) CreateApplication(customerApplicationInput CreateApplicationInput) (domain.LoanApplication, error) {
 
 	customer := domain.Customer{}
 	customer.ID = uuid.NewString()
@@ -33,10 +42,20 @@ func (c ApplicationService) CreateApplication(customerApplicationInput CreateApp
 	loanApplication.CreatedAt = timeNow
 	loanApplication.UpdatedAt = timeNow
 
+	repositoryErr := s.repository.Create(customer, loanApplication)
+	if repositoryErr != nil {
+		return domain.LoanApplication{}, repositoryErr
+	}
+
 	return loanApplication, nil
 }
 
-func (c ApplicationService) GetApplication(applicationID string) (domain.LoanApplication, error) {
+func (s ApplicationService) GetApplication(applicationID string) (domain.LoanApplication, error) {
 
-	return domain.LoanApplication{}, nil
+	loanApplication, repositoryErr := s.repository.GetByID(applicationID)
+	if repositoryErr != nil {
+		return domain.LoanApplication{}, repositoryErr
+	}
+
+	return loanApplication, nil
 }
