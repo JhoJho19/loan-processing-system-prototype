@@ -5,9 +5,7 @@ import (
 	"time"
 )
 
-var (
-	ErrInvalidApplicationID = errors.New("invalid application ID")
-)
+var ErrInvalidApplicationID = errors.New("invalid application ID")
 
 type LoanApplication struct {
 	ID              string
