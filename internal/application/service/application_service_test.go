@@ -228,6 +228,124 @@ func TestApplicationService_CreateApplication_RepositoryError(t *testing.T) {
 	}
 }
 
+func TestApplicationService_GetApplication(t *testing.T) {
+	// 1. Arrange
+	applicationID := "some-application-id"
+
+	expectedApplication := domain.LoanApplication{
+		ID:              applicationID,
+		CustomerID:      "some-customer-id",
+		RequestedAmount: 10000,
+		TermMonths:      12,
+		Status:          domain.StatusNew,
+	}
+
+	getByIDCalled := false
+
+	fakeRepo := &fakeApplicationRepository{
+		GetByIDFunc: func(id string) (domain.LoanApplication, error) {
+			getByIDCalled = true
+
+			if id != applicationID {
+				t.Errorf("expected GetByID to be called with %s, got %s", applicationID, id)
+			}
+
+			return expectedApplication, nil
+		},
+	}
+
+	service := NewApplicationService(fakeRepo)
+
+	// 2. Act
+	application, err := service.GetApplication(applicationID)
+
+	// 3. Assert
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if !getByIDCalled {
+		t.Errorf("expected repository GetByID to be called")
+	}
+
+	if application != expectedApplication {
+		t.Errorf("expected application %+v, got %+v", expectedApplication, application)
+	}
+}
+
+func TestApplicationService_GetApplication_InvalidID(t *testing.T) {
+	// 1. Arrange
+	applicationID := ""
+
+	getByIDCalled := false
+
+	fakeRepo := &fakeApplicationRepository{
+		GetByIDFunc: func(id string) (domain.LoanApplication, error) {
+			getByIDCalled = true
+			return domain.LoanApplication{}, nil
+		},
+	}
+
+	service := NewApplicationService(fakeRepo)
+
+	// 2. Act
+	application, err := service.GetApplication(applicationID)
+
+	// 3. Assert
+	if err == nil {
+		t.Fatalf("expected error for invalid application ID, got nil")
+	}
+
+	if err != domain.ErrInvalidApplicationID {
+		t.Errorf(
+			"expected error %v, got %v",
+			domain.ErrInvalidApplicationID,
+			err,
+		)
+	}
+
+	if getByIDCalled {
+		t.Errorf("expected repository GetByID not to be called")
+	}
+
+	if application != (domain.LoanApplication{}) {
+		t.Errorf("expected empty LoanApplication, got %+v", application)
+	}
+}
+
+func TestApplicationService_GetApplication_RepositoryError(t *testing.T) {
+	// 1. Arrange
+	applicationID := "some-application-id"
+	repositoryError := errors.New("repository error")
+	getByIDCalled := false
+
+	fakeRepo := &fakeApplicationRepository{
+		GetByIDFunc: func(id string) (domain.LoanApplication, error) {
+			getByIDCalled = true
+			return domain.LoanApplication{}, repositoryError
+		},
+	}
+
+	service := NewApplicationService(fakeRepo)
+
+	// 2. Act
+	application, err := service.GetApplication(applicationID)
+
+	// 3. Assert
+	if err == nil {
+		t.Fatalf("expected error from repository, got nil")
+	}
+	if err != repositoryError {
+		t.Errorf("expected error %v, got %v", repositoryError, err)
+	}
+	if !getByIDCalled {
+		t.Errorf("expected repository GetByID to be called")
+	}
+	if application != (domain.LoanApplication{}) {
+		t.Errorf("expected empty LoanApplication, got %+v", application)
+	}
+}
+
 type fakeApplicationRepository struct {
 	CreateFunc  func(customer domain.Customer, application domain.LoanApplication) error
 	GetByIDFunc func(id string) (domain.LoanApplication, error)
