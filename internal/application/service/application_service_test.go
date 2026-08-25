@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"loan-processing-system/internal/application/domain"
 	"strings"
 	"testing"
@@ -169,11 +170,62 @@ func TestApplicationService_CreateApplication_InvalidInput(t *testing.T) {
 
 func TestApplicationService_CreateApplication_RepositoryError(t *testing.T) {
 	// 1. Arrange
+	var (
+		inputFirstName       = "John"
+		inputLastName        = "Doe"
+		inputAddress         = "123 Main St"
+		inputBirthDate       = time.Date(1990, 1, 1, 0, 0, 0, 0, time.UTC)
+		inputMonthlyIncome   = 5000
+		inputEmploymentType  = "Full-time"
+		inputEmail           = "john.doe@example.com"
+		inputPhone           = "123-456-7890"
+		inputRequestedAmount = 10000
+		inputTermMonths      = 12
+	)
+
+	fakeRepo := &fakeApplicationRepository{}
+
+	repositoryError := errors.New("repository error")
+
+	createCalled := false
+
+	fakeRepo.CreateFunc = func(customer domain.Customer, application domain.LoanApplication) error {
+		createCalled = true
+		return repositoryError
+	}
+
+	service := NewApplicationService(fakeRepo)
+
+	applicationInput := CreateApplicationInput{
+		FirstName:       inputFirstName,
+		LastName:        inputLastName,
+		Address:         inputAddress,
+		BirthDate:       inputBirthDate,
+		MonthlyIncome:   inputMonthlyIncome,
+		EmploymentType:  inputEmploymentType,
+		Email:           inputEmail,
+		Phone:           inputPhone,
+		RequestedAmount: inputRequestedAmount,
+		TermMonths:      inputTermMonths,
+	}
 
 	// 2. Act
 
-	// 3. Assert
+	createdApplication, err := service.CreateApplication(applicationInput)
 
+	// 3. Assert
+	if createCalled == false {
+		t.Errorf("expected repository Create to be called")
+	}
+	if err == nil {
+		t.Fatalf("expected error from repository, got nil")
+	}
+	if err != repositoryError {
+		t.Errorf("expected error %v, got %v", repositoryError, err)
+	}
+	if createdApplication != (domain.LoanApplication{}) {
+		t.Errorf("expected empty LoanApplication, got %+v", createdApplication)
+	}
 }
 
 type fakeApplicationRepository struct {
