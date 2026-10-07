@@ -17,9 +17,7 @@ func NewPostgresRepository(pool *pgxpool.Pool) *PostgresRepository {
 	}
 }
 
-func (r *PostgresRepository) Create(
-	customer domain.Customer,
-	application domain.LoanApplication,
+func (r *PostgresRepository) Create(customer domain.Customer, application domain.LoanApplication,
 ) error {
 
 	ctx := context.Background()
@@ -92,8 +90,39 @@ func (r *PostgresRepository) Create(
 	return nil
 }
 
-func (r *PostgresRepository) GetByID(
-	applicationID string,
-) (domain.LoanApplication, error) {
-	return domain.LoanApplication{}, nil
+func (r *PostgresRepository) GetByID(applicationID string) (
+	domain.LoanApplication, error) {
+
+	ctx := context.Background()
+
+	var application domain.LoanApplication
+
+	err := r.pool.QueryRow(
+		ctx,
+		`SELECT
+			id,
+			customer_id,
+			requested_amount,
+			term_months,
+			status,
+			created_at,
+			updated_at
+		FROM loan_applications
+		WHERE id = $1`,
+		applicationID,
+	).Scan(
+		&application.ID,
+		&application.CustomerID,
+		&application.RequestedAmount,
+		&application.TermMonths,
+		&application.Status,
+		&application.CreatedAt,
+		&application.UpdatedAt,
+	)
+
+	if err != nil {
+		return domain.LoanApplication{}, err
+	}
+
+	return application, nil
 }
