@@ -3,12 +3,18 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func main() {
-	databaseURL := "postgres://loan_user:loan_password@localhost:5432/loan_processing"
+	databaseURL := os.Getenv("DATABASE_URL")
+
+	if databaseURL == "" {
+		fmt.Println("DATABASE_URL is not configured")
+		return
+	}
 
 	pool, err := pgxpool.New(context.Background(), databaseURL)
 	if err != nil {

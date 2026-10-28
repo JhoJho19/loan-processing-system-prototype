@@ -1,0 +1,29 @@
+# Editor settings
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# Temporary files
+*.tmp
+*.bak
+
+# Local configuration
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Go build artifacts
+/bin/
+/dist/
+*.exe
+*.test
+*.test.exe
+
+# Test coverage
+/coverage/
+coverage.out
+coverage.html
+
+# Logs
+*.log
